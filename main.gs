@@ -1,4 +1,4 @@
-function postMessage() {
+function postMessage(message) {
   // ユーザIDとチャネルアクセストークンはスクリプトのプロパティから取得
   let prop = PropertiesService.getScriptProperties().getProperties();
   
@@ -8,7 +8,7 @@ function postMessage() {
   const payload = {
     to: prop.USERID,
     messages: [
-      {type: 'text', text: 'Hello, world!'}
+      {type: 'text', text: message}
     ]
   };
 
@@ -24,21 +24,44 @@ function postMessage() {
   UrlFetchApp.fetch(url, params);
 }
 
+const buratamoriURL = 'https://www.nhk.jp/p/buratamori/ts/D8K46WY9MZ/schedule/?area=290';
+
 // ブラタモリの公式サイトから放映日情報のリストを取得
-// 戻り値 [{date: <Dateオブジェクト>, title: <String>, description: <String>}, {...}, ...]
+// 戻り値 [{date: <String>, title: <String>, description: <String>}, {...}, ...]
 function getOnAirInfoList() {
-  const url = 'https://www.nhk.jp/p/buratamori/ts/D8K46WY9MZ/schedule/?area=290';
+  const url = buratamoriURL;
   let $ = Cheerio.load(getDynamicPage(url));
 
   let $onAirInfos = $("div.mobile-schedule ul.list li");
-  console.log($onAirInfos.html());
-  console.log($onAirInfos.length);
-  // タイトルの表示
-  console.log($onAirInfos.eq(0).find(".title-group").text());
-  // 放映日の表示
-  console.log($onAirInfos.eq(0).find(".on-air-date").text());
-  // 説明の表示
-  console.log($onAirInfos.eq(0).find(".description").text());
+
+  let onAirInfoList = [];
+  for (let i = 0; i < $onAirInfos.length; i++) {
+    let onAirInfoObj = {
+      date: $onAirInfos.eq(i).find(".on-air-date").text(),
+      title: $onAirInfos.eq(i).find("h3.title").text(),
+      description: $onAirInfos.eq(i).find(".description p.text").text()
+    };
+    onAirInfoList.push(onAirInfoObj);
+  }
+  console.log(onAirInfoList);
+  return onAirInfoList;
+}
+
+// 呼び出されたときブラタモリのHPから放送情報を取得しLINEに通知
+function alertWeekly() {
+  let onAirInforList = getOnAirInfoList();
+  let message = "";
+  for (let i = 0; i < onAirInforList.length; i++) {
+    message += onAirInforList[i]["date"] + "\n" + onAirInforList[i]["title"] + "\n" + onAirInforList[i]["description"];
+    if (i !== onAirInforList.length - 1) {
+      message += "\n\n";
+    }
+    if (i == onAirInforList.length - 1) {
+      message += "\n" + buratamoriURL;
+    }
+  }
+  // console.log(message);
+  postMessage(message);
 }
 
 // PhantomJsCloudを利用して動的ページを取得
