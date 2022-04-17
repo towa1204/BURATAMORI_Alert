@@ -49,15 +49,29 @@ function getOnAirInfoList() {
 
 // 1日1回呼び出し、放送リストの更新処理・通知処理を行う
 function doDaily() {
-  // let onAirInfoList = getOnAirInfoList();
+  // 放送リストの取得
+  let onAirInfoList = getOnAirInfoList();
+
+  // let test_str = "4月23日（土） 午後7:30 〜 午後8:15";
 
   // 通知処理
     // 当日の放送される回であればLINEに通知
-  // for (let i = 0; i < onAirInfoList.length; i++) {
-  // }
-  let test_str = "4月23日（土） 午後7:30 〜 午後8:15";
-  let date = convertNHKDate(test_str);
-  console.log(date);
+  let today = new Date();
+  for (let i = 0; i < onAirInfoList.length; i++) {
+    let date = convertNHKDate(onAirInfoList[i]["date"]);
+    // console.log(today);
+    // console.log(date);
+
+    // 当日であればLINEに通知
+    if (date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() 
+        && date.getDate() === today.getDate()) {
+      let message = "今日はブラタモリが放映されます。\n\n";
+      message += onAirInfoList[i]["date"] + "\n" + onAirInfoList[i]["title"] + "\n" + onAirInfoList[i]["description"];
+      message += "\n" + buratamoriURL;
+      console.log(message);
+      postMessage(message);
+    }
+  }
 }
 
 // NHKの放送日形式 "mm月dd日（wd） 午後hours:minute 〜 午後hours:minute" を Dateオブジェクト yyyy/mm/dd に変換
