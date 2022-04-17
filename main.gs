@@ -47,6 +47,46 @@ function getOnAirInfoList() {
   return onAirInfoList;
 }
 
+// 1日1回呼び出し、放送リストの更新処理・通知処理を行う
+function doDaily() {
+  // let onAirInfoList = getOnAirInfoList();
+
+  // 通知処理
+    // 当日の放送される回であればLINEに通知
+  // for (let i = 0; i < onAirInfoList.length; i++) {
+  // }
+  let test_str = "4月23日（土） 午後7:30 〜 午後8:15";
+  let date = convertNHKDate(test_str);
+  console.log(date);
+}
+
+// NHKの放送日形式 "mm月dd日（wd） 午後hours:minute 〜 午後hours:minute" を Dateオブジェクト yyyy/mm/dd に変換
+function convertNHKDate(nhkDate) {
+  // 切り出して mm月dd日（wd）の形式
+
+  let monthDay = ""; // "mm/dd"の文字列を以下の処理で作成 "/"でsplitして使う
+  for (let i = 0; i < nhkDate.length; i++) {
+    if (nhkDate[i] === "月") {
+      monthDay += "/"
+    } else if (nhkDate[i] === "日") {
+      break;
+    } else {
+      monthDay += nhkDate[i];
+    }
+  }
+
+  let today = new Date(); // プログラム実行時の日時
+  // プログラムを実行時の月が12月で放送予定日が1月のとき年を加算
+    // さすがに12月末の放送予定に2月の内容はないと思われるので1月のみに対応
+  let year = today.getFullYear();
+  if (today.getMonth() === 11 && monthDay.split("/")[0] === "1") {
+    year++;
+  }
+  let date = new Date(year, monthDay.split("/")[0] - 1, monthDay.split("/")[1]);
+  
+  return date;
+}
+
 // 呼び出されたときブラタモリのHPから放送情報を取得しLINEに通知
 function alertWeekly() {
   let onAirInforList = getOnAirInfoList();
