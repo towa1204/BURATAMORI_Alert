@@ -55,16 +55,15 @@ function doDaily() {
   // let test_str = "4月23日（土） 午後7:30 〜 午後8:15";
 
   // 通知処理
-    // 当日の放送される回であればLINEに通知
-  let today = new Date();
+    // 実行時間から24hの範囲内で放送される回であればLINEに通知
+  let today_mili = (new Date()).getTime() + 24 * 60 * 60 * 1000;
   for (let i = 0; i < onAirInfoList.length; i++) {
     let date = convertNHKDate(onAirInfoList[i]["date"]);
     // console.log(today);
     // console.log(date);
 
-    // 当日であればLINEに通知
-    if (date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() 
-        && date.getDate() === today.getDate()) {
+    // 実行時間から24hの範囲内で放送される回であればLINEに通知
+    if (date.getTime() <= today_mili) {
       let message = "今日はブラタモリが放映されます。\n\n";
       message += onAirInfoList[i]["date"] + "\n" + onAirInfoList[i]["title"] + "\n" + onAirInfoList[i]["description"];
       message += "\n" + buratamoriURL;
