@@ -115,6 +115,9 @@ function alertWeekly() {
     }
   }
   // console.log(message);
+  if (message === "") {
+    message = "今週の放送予定日はありません。";
+  }
   postMessage(message);
 }
 
