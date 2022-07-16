@@ -1,4 +1,11 @@
-function postMessage(message) {
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-console */
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-plusplus */
+function postMessage(message: string) {
   // ユーザIDとチャネルアクセストークンはスクリプトのプロパティから取得
   const prop = PropertiesService.getScriptProperties().getProperties();
 
@@ -26,15 +33,17 @@ const buratamoriURL = 'https://www.nhk.jp/p/buratamori/ts/D8K46WY9MZ/schedule/?a
 
 // ブラタモリの公式サイトから放映日情報のリストを取得
 // 戻り値 [{date: <String>, title: <String>, description: <String>}, {...}, ...]
-function getOnAirInfoList() {
+type onAirInfo = { date: string; title: string; description: string };
+
+function getOnAirInfoList(): onAirInfo[] {
   const url = buratamoriURL;
   const $ = Cheerio.load(getDynamicPage(url));
 
   const $onAirInfos = $('div.mobile-schedule ul.list li');
 
-  const onAirInfoList = [];
+  const onAirInfoList: onAirInfo[] = [];
   for (let i = 0; i < $onAirInfos.length; i++) {
-    const onAirInfoObj = {
+    const onAirInfoObj: onAirInfo = {
       date: $onAirInfos.eq(i).find('.on-air-date').text(),
       title: $onAirInfos.eq(i).find('h3.title').text(),
       description: $onAirInfos.eq(i).find('.description p.text').text(),
@@ -54,25 +63,25 @@ function doDaily() {
 
   // 通知処理
   // 実行時間から24hの範囲内で放送される回であればLINEに通知
-  const today_mili = new Date().getTime() + 24 * 60 * 60 * 1000;
+  const todayMili = new Date().getTime() + 24 * 60 * 60 * 1000;
   for (let i = 0; i < onAirInfoList.length; i++) {
     const date = convertNHKDate(onAirInfoList[i].date);
     // console.log(today);
     // console.log(date);
 
     // 実行時間から24hの範囲内で放送される回であればLINEに通知
-    if (date.getTime() <= today_mili) {
+    if (date.getTime() <= todayMili) {
       let message = '今日はブラタモリが放映されます。\n\n';
       message += `${onAirInfoList[i].date}\n${onAirInfoList[i].title}\n${onAirInfoList[i].description}`;
       message += `\n${buratamoriURL}`;
-      console.log(message);
+      console.log(`message = ${message}`);
       postMessage(message);
     }
   }
 }
 
 // NHKの放送日形式 "mm月dd日（wd） 午後hours:minute 〜 午後hours:minute" を Dateオブジェクト yyyy/mm/dd に変換
-function convertNHKDate(nhkDate) {
+function convertNHKDate(nhkDate: string) {
   // 切り出して mm月dd日（wd）の形式
 
   let monthDay = ''; // "mm/dd"の文字列を以下の処理で作成 "/"でsplitして使う
@@ -93,7 +102,7 @@ function convertNHKDate(nhkDate) {
   if (today.getMonth() === 11 && monthDay.split('/')[0] === '1') {
     year++;
   }
-  const date = new Date(year, monthDay.split('/')[0] - 1, monthDay.split('/')[1]);
+  const date = new Date(year, Number(monthDay.split('/')[0]) - 1, Number(monthDay.split('/')[1]));
 
   return date;
 }
@@ -107,7 +116,7 @@ function alertWeekly() {
     if (i !== onAirInforList.length - 1) {
       message += '\n\n';
     }
-    if (i == onAirInforList.length - 1) {
+    if (i === onAirInforList.length - 1) {
       message += `\n${buratamoriURL}`;
     }
   }
@@ -119,9 +128,13 @@ function alertWeekly() {
 }
 
 // PhantomJsCloudを利用して動的ページを取得
-function getDynamicPage(requestURL) {
+function getDynamicPage(requestURL: string) {
   // APIkeyはスクリプトのプロパティから取得
   const key = PropertiesService.getScriptProperties().getProperty('PHANTOMJSCLOUDID');
+  if (key === null) {
+    console.log('key の値が null です。');
+    return;
+  }
 
   // HTTPSレスポンスに設定するペイロードのオプション項目を設定
   const option = {
