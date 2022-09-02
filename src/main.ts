@@ -83,27 +83,32 @@ function doDaily() {
 // NHKの放送日形式 "mm月dd日（wd） 午後hours:minute 〜 午後hours:minute" を Dateオブジェクト yyyy/mm/dd に変換
 function convertNHKDate(nhkDate: string) {
   // 切り出して mm月dd日（wd）の形式
-
-  let monthDay = ''; // "mm/dd"の文字列を以下の処理で作成 "/"でsplitして使う
+  let monthDay = ''; // "mm/dd"の文字列を以下の処理で作成, "/"でsplitして使う
   for (let i = 0; i < nhkDate.length; i++) {
-    if (nhkDate[i] === '月') {
-      monthDay += '/';
-    } else if (nhkDate[i] === '日') {
-      break;
-    } else {
-      monthDay += nhkDate[i];
-    }
+      if (nhkDate[i] === '月') {
+          monthDay += '/';
+      }
+      else if (nhkDate[i] === '日') {
+          break;
+      }
+      else {
+          monthDay += nhkDate[i];
+      }
   }
+  const onairDateStr = nhkDate.split(' ')[1]; // 午前hours:minute or 午後hours:minute の抽出
+  const onair = onairDateStr.substring(2);
+  let hours = Number(onair.split(":")[0]);
+  hours += onairDateStr.substring(0, 2) === '午前' ? 0 : 12;
+  const minutes = Number(onair.split(":")[1]);
 
   const today = new Date(); // プログラム実行時の日時
   // プログラムを実行時の月が12月で放送予定日が1月のとき年を加算
   // さすがに12月末の放送予定に2月の内容はないと思われるので1月のみに対応
   let year = today.getFullYear();
   if (today.getMonth() === 11 && monthDay.split('/')[0] === '1') {
-    year++;
+      year++;
   }
-  const date = new Date(year, Number(monthDay.split('/')[0]) - 1, Number(monthDay.split('/')[1]));
-
+  const date = new Date(year, Number(monthDay.split('/')[0]) - 1, Number(monthDay.split('/')[1]), hours, minutes);
   return date;
 }
 
